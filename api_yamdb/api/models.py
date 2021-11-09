@@ -1,10 +1,6 @@
-from django.db import models
-
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-
-    
 
 class User(AbstractUser):
     
@@ -15,6 +11,8 @@ class User(AbstractUser):
                               unique=True, blank=False, null=False)
 
     bio = models.TextField(blank=True)
+
+    confirmation_code=models.CharField(max_length=20)
 
     ROLE_CHOICES = [('USER', 'user'),
     ('MODERATOR', 'moderator'), ('ADMIN', 'admin')]
