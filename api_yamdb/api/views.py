@@ -1,33 +1,14 @@
-import random
-import string
-
 from rest_framework.decorators import api_view 
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.generics import get_object_or_404
-from django.core.mail import send_mail
 from rest_framework.views import APIView
 
 from .models import User
 from .serializers import UserSerializer
+from .utilities import get_confirmation_code, send_confirmation_code_email
 
-
-def get_confirmation_code():
-    return ''.join(random.choices(
-        string.ascii_lowercase + string.ascii_uppercase + string.digits,
-        k=10))
-
-def send_confirmation_code_email(email, confirmation_code):
-    send_mail(
-        subject='YaMBD confirmation code',
-        message=f'Hello! Your confirmation code is {confirmation_code}.',
-        from_email='register@fakeyamdb.com',
-        recepient_list=[email],
-        fail_silent=False
-    )
-
-@api_view
 class RegisterView(APIView):
     def post(self, request):
         email=request.data.get('email')
