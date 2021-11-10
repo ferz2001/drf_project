@@ -40,7 +40,7 @@ class Genre(models.Model):
 
 class Title(models.Model):
     name = models.CharField(max_length=70,)
-    year = models.PositiveIntegerField(max_length=4,)
+    year = models.PositiveIntegerField()
     slug = models.SlugField(max_length=50, unique=True,)
     description = models.TextField(blank=True,)
     genre = models.ForeignKey(
