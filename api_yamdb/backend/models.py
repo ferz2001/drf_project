@@ -2,6 +2,10 @@ from api.utilities import get_confirmation_code
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+ROLE_CHOICES = [('USER', 'user'),
+                ('MODERATOR', 'moderator'),
+                ('ADMIN', 'admin')]
+
 
 class User(AbstractUser):
     username = models.CharField(max_length=150,
@@ -12,11 +16,8 @@ class User(AbstractUser):
     password = models.CharField(max_length=50, blank=True)
     bio = models.TextField(blank=True)
     first_name = models.CharField(max_length=150, blank=True)
-    first_name = models.CharField(max_length=150, blank=True)
+    last_name = models.CharField(max_length=150, blank=True)
     confirmation_code = models.CharField(max_length=20, default=get_confirmation_code())
-    ROLE_CHOICES = [('USER', 'user'),
-                    ('MODERATOR', 'moderator'),
-                    ('ADMIN', 'admin')]
     role = models.CharField(
         max_length=20,
         choices=ROLE_CHOICES,
@@ -43,7 +44,6 @@ class Genre(models.Model):
 class Title(models.Model):
     name = models.CharField(max_length=70,)
     year = models.PositiveIntegerField()
-    slug = models.SlugField(max_length=50, unique=True,)
     description = models.TextField(blank=True,)
     genre = models.ForeignKey(
         'Genre',
@@ -51,7 +51,13 @@ class Title(models.Model):
         related_name='titles',
         null=True,
     )
-
+    categorie = models.ForeignKey(
+        'Categorie',
+        on_delete=models.SET_NULL,
+        related_name='titles',
+        null=True,
+    )
+    
     def __str__(self):
         return self.name
 
