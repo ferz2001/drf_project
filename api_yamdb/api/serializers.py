@@ -44,6 +44,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('__all__')
         model = Review
+        read_only_fields = ('title',)
 
 
 class CommentSerializer(serializers.ModelSerializer):
