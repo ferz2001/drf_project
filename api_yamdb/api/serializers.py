@@ -16,6 +16,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
 
 
+
 class CategorieSerializer(serializers.ModelSerializer):
 
     class Meta:

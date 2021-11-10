@@ -12,9 +12,9 @@ def get_confirmation_code():
 
 def send_confirmation_code_email(email, confirmation_code):
     send_mail(
-        subject='YaMBD confirmation code',
-        message=f'Hello! Your confirmation code is {confirmation_code}.',
-        from_email='register@fakeyamdb.com',
-        recepient_list=[email],
-        fail_silent=False
+        'YaMBD confirmation code',
+        f'Hello! Your confirmation code is {confirmation_code}.',
+        'register@fakeyamdb.com',
+        [email],
+        fail_silently=False
     )

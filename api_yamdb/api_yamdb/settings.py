@@ -105,3 +105,5 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static/'),)
 
 AUTH_USER_MODEL = 'backend.User'
+
+DEFAULT_FROM_EMAIL = 'k.milobendzky@yandex.ru'
