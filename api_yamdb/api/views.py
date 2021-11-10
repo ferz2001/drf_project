@@ -1,27 +1,27 @@
 from rest_framework.decorators import api_view
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import status
+from rest_framework import status, viewsets
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import get_object_or_404
 from rest_framework.views import APIView
-from rest_framework import viewsets
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework import filters
 
-from .models import User
 from backend.models import (Categorie,
                             Genre,
                             Title,
                             Review,
-                            Comment)
+                            Comment,
+                            User)
 from .serializers import (UserSerializer,
                           CategorieSerializer,
                           GenreSerializer,
                           TitleSerializer,
                           ReviewSerializer,
                           CommentSerializer)
+
 from .utilities import get_confirmation_code, send_confirmation_code_email
 
 
@@ -39,7 +39,6 @@ class RegisterView(APIView):
 
 
 class TokenView(APIView):
-
     def get_token(self, user):
         refresh = RefreshToken.for_user(user)
         return str(refresh.access_token)

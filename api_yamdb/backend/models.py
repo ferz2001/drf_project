@@ -1,34 +1,53 @@
+from api.utilities import get_confirmation_code
+from django.contrib.auth.models import AbstractUser
 from django.db import models
-from api.models import User
+
+
+class User(AbstractUser):
+    username = models.CharField(max_length=150,
+                                unique=True,
+                                blank=False, null=False)
+    email = models.EmailField(max_length=254,
+                              unique=True, blank=False, null=False)
+    bio = models.TextField(blank=True)
+
+    confirmation_code = models.CharField(max_length=20, default=get_confirmation_code())
+    ROLE_CHOICES = [('USER', 'user'),
+                    ('MODERATOR', 'moderator'),
+                    ('ADMIN', 'admin')]
+    role = models.CharField(
+        max_length=20,
+        choices=ROLE_CHOICES,
+        default='USER',
+    )
 
 
 class Categorie(models.Model):
-    name = models.CharField(max_length=256)
-    slug = models.SlugField(max_length=50, unique=True)
+    name = models.CharField(max_length=256,)
+    slug = models.SlugField(max_length=50, unique=True,)
 
     def __str__(self):
         return self.name
 
 
 class Genre(models.Model):
-    name = models.CharField(max_length=256)
-    slug = models.SlugField(max_length=50, unique=True)
+    name = models.CharField(max_length=256,)
+    slug = models.SlugField(max_length=50, unique=True,)
 
     def __str__(self):
         return self.name
 
 
 class Title(models.Model):
-    name = models.CharField(max_length=70)
-    year = models.PositiveIntegerField(max_length=4)
-    slug = models.SlugField(max_length=50, unique=True)
-    description = models.TextField(blank=True)
+    name = models.CharField(max_length=70,)
+    year = models.PositiveIntegerField(max_length=4,)
+    slug = models.SlugField(max_length=50, unique=True,)
+    description = models.TextField(blank=True,)
     genre = models.ForeignKey(
         'Genre',
         on_delete=models.SET_NULL,
         related_name='titles',
         null=True,
-        required=True
     )
 
     def __str__(self):
@@ -40,8 +59,9 @@ class Review(models.Model):
         User, on_delete=models.CASCADE, related_name='reviews')
     pub_date = models.DateTimeField(
         'Дата добавления', auto_now_add=True, db_index=True)
-    score = models.PositiveIntegerField('Оценка')
-    text = models.CharField(max_length=256)
+    score = models.PositiveIntegerField(
+        'Оценка',)
+    text = models.CharField(max_length=256,)
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE, related_name='reviews')
 

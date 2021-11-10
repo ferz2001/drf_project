@@ -1,13 +1,12 @@
 from rest_framework import serializers, validators
 from rest_framework.relations import SlugRelatedField
 
-from .models import User
-
 from backend.models import (Categorie,
                             Genre,
                             Title,
                             Review,
-                            Comment)
+                            Comment,
+                            User)
 
 
 class UserSerializer(serializers.ModelSerializer):
