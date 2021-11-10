@@ -3,26 +3,26 @@ from api.models import User
 
 
 class Categorie(models.Model):
-    name = models.CharField(max_length=256, required=True)
-    slug = models.SlugField(max_length=50, unique=True, required=True)
+    name = models.CharField(max_length=256)
+    slug = models.SlugField(max_length=50, unique=True)
 
     def __str__(self):
         return self.name
 
 
 class Genre(models.Model):
-    name = models.CharField(max_length=256, required=True)
-    slug = models.SlugField(max_length=50, unique=True, required=True)
+    name = models.CharField(max_length=256)
+    slug = models.SlugField(max_length=50, unique=True)
 
     def __str__(self):
         return self.name
 
 
 class Title(models.Model):
-    name = models.CharField(max_length=70, required=True)
-    year = models.PositiveIntegerField(max_length=4, required=True)
-    slug = models.SlugField(max_length=50, unique=True, required=True)
-    description = models.TextField(blank=True, required=False)
+    name = models.CharField(max_length=70)
+    year = models.PositiveIntegerField(max_length=4)
+    slug = models.SlugField(max_length=50, unique=True)
+    description = models.TextField(blank=True)
     genre = models.ForeignKey(
         'Genre',
         on_delete=models.SET_NULL,
@@ -40,9 +40,8 @@ class Review(models.Model):
         User, on_delete=models.CASCADE, related_name='reviews')
     pub_date = models.DateTimeField(
         'Дата добавления', auto_now_add=True, db_index=True)
-    score = models.PositiveIntegerField(
-        'Оценка', required=True)
-    text = models.CharField(max_length=256, required=True)
+    score = models.PositiveIntegerField('Оценка')
+    text = models.CharField(max_length=256)
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE, related_name='reviews')
 
