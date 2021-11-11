@@ -19,9 +19,11 @@ api_router.register('titles', TitleViewSet, basename='titles')
 api_router.register(r'^titles/(?P<title_id>\d+)/reviews',
                     ReviewViewSet,
                     basename='reviews')
-api_router.register(r'^titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
-                    CommentViewSet,
-                    basename='comments')
+api_router.register(
+    r'^titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
+    CommentViewSet,
+    basename='comments'
+)
 urlpatterns = [
     path('v1/auth/signup/', RegisterView.as_view(), name='register'),
     path('v1/auth/token/', TokenView.as_view(), name='get_token'),

@@ -16,7 +16,8 @@ class User(AbstractUser):
     password = models.CharField(max_length=50, blank=True)
     bio = models.TextField(blank=True)
     first_name = models.CharField(max_length=150, blank=True)
-    confirmation_code = models.CharField(max_length=20, default=get_confirmation_code())
+    confirmation_code = models.CharField(
+        max_length=20, default=get_confirmation_code())
     role = models.CharField(
         max_length=20,
         choices=ROLE_CHOICES,
@@ -56,7 +57,7 @@ class Title(models.Model):
         related_name='titles',
         null=True,
     )
-    
+
     def __str__(self):
         return self.name
 
