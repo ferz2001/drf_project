@@ -2,6 +2,7 @@
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status, viewsets, permissions, mixins
 from rest_framework.response import Response
+from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import get_object_or_404
 from rest_framework.views import APIView
@@ -24,6 +25,7 @@ from .serializers import (UserSerializer,
 
 from .utilities import get_confirmation_code, send_confirmation_code_email
 
+from .permissions import IsAdmin
 
 class RegisterView(APIView):
     def post(self, request):
@@ -62,21 +64,21 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     filter_backends = (filters.SearchFilter, )
     search_field = 'username'
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAdmin,)
 
-    def perform_create(self, serializer):
-        if self.request.user.role == 'ADMIN':
+    @action(detail=False, permission_classes=(permissions.IsAuthenticated,),
+            methods=['GET', 'PATCH'], url_path='me')
+    def get_or_patch_yourself(self, request):
+        if request.method == 'GET':
+            serializer=self.get_serializer(request.user, many=False)
+            return Response(serializer.data)
+        elif request.method == 'PATCH':
+            serializer = self.get_serializer(instance=request.user,
+                                    data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
             serializer.save()
-        else:
-            raise PermissionDenied(
-                'Только администратор имеет право добавлять новые категории')
+            return Response(serializer.data)
 
-    def perform_destroy(self, instance):
-        if self.request.user.role == 'ADMIN':
-            super(CategorieViewSet, self).perform_destroy(instance)
-        else:
-            raise PermissionDenied(
-                'Только администратор имеет право удалять категории')
 
 
 class CategorieViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
