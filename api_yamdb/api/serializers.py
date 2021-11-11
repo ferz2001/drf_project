@@ -1,4 +1,4 @@
-from rest_framework import serializers  # , validators
+from rest_framework import permissions, serializers  # , validators
 # from rest_framework.relations import SlugRelatedField
 
 from backend.models import (Categorie,
@@ -45,7 +45,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('__all__')
         model = Review
-        read_only_fields = ('title',)
+        read_only_fields = ('title', 'category', 'genre')
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -55,3 +55,4 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('__all__')
         model = Comment
+        read_only_fields = ('title', 'review')
