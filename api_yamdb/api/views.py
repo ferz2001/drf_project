@@ -68,6 +68,9 @@ class CategorieViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
                        mixins.DestroyModelMixin, viewsets.GenericViewSet):
     queryset = Categorie.objects.all()
     serializer_class = CategorieSerializer
+    pagination_class = LimitOffsetPagination
+    filter_backends = (filters.SearchFilter, )
+    search_fields = ('name',)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def perform_create(self, serializer):
@@ -90,6 +93,7 @@ class GenreViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     pagination_class = LimitOffsetPagination
+    search_fields = ('name',)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def perform_create(self, serializer):
@@ -110,8 +114,9 @@ class GenreViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
-    filter_backends = (filters.SearchFilter, )
-    search_fields = ('categorie', 'genre', 'name', 'year')
+    pagination_class = LimitOffsetPagination
+    filter_backends = (filters.SearchFilter, DjangoFilterBackend,)
+    filterset_fields = ('categorie', 'genre__slug', 'name', 'year')
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def perform_create(self, serializer):
@@ -144,7 +149,7 @@ class TitleViewSet(viewsets.ModelViewSet):
             serializer.save()
         else:
             raise PermissionDenied('Только администратор имеет'
-                                   ' право обновлять данные о произведении')        
+                                   ' право обновлять данные о произведении')
 
     def perform_destroy(self, instance):
         if self.request.user.role == 'ADMIN':
