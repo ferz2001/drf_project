@@ -1,4 +1,4 @@
-from rest_framework.decorators import api_view
+# from rest_framework.decorators import api_view
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status, viewsets
 from rest_framework.response import Response
@@ -30,7 +30,11 @@ class RegisterView(APIView):
         email = request.data.get('email')
         username = request.data.get('username')
         confirmation_code = get_confirmation_code()
-        data = {'email': email, 'username': username, 'confirmation_code': confirmation_code}
+        data = {
+            'email': email,
+            'username': username,
+            'confirmation_code': confirmation_code
+        }
         serializer = UserSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
