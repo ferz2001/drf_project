@@ -23,6 +23,7 @@ from .serializers import (UserSerializer,
                           CommentSerializer)
 
 from .utilities import get_confirmation_code, send_confirmation_code_email
+from .permissions import AuthADMMODOrReadOnly
 
 
 class RegisterView(APIView):
@@ -162,8 +163,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('category', 'genre', 'name', 'year')
+    permission_classes = (AuthADMMODOrReadOnly,)
 
     def perform_update(self, serializer):
         if serializer.instance.author != self.request.user:
@@ -190,6 +190,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def perform_update(self, serializer):
         if serializer.instance.author != self.request.user:
@@ -214,3 +215,8 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user,
                         title=title,
                         review=review)
+
+    def get_permissions(self):
+        if self.action == 'update':
+            return (AuthADMMODOrReadOnly(),)
+        return super().get_permissions()
