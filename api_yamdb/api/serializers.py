@@ -1,5 +1,5 @@
-from rest_framework import serializers, validators
-from rest_framework.relations import SlugRelatedField
+from rest_framework import serializers  # , validators
+# from rest_framework.relations import SlugRelatedField
 
 from backend.models import (Categorie,
                             Genre,
@@ -14,7 +14,6 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('__all__')
         model = User
-
 
 
 class CategorieSerializer(serializers.ModelSerializer):
@@ -34,6 +33,7 @@ class GenreSerializer(serializers.ModelSerializer):
 class TitleSerializer(serializers.ModelSerializer):
 
     class Meta:
+        # fields = ('id', 'name', 'year', 'description', 'genre', 'categorie')
         fields = ('__all__')
         model = Title
 
