@@ -8,7 +8,8 @@ from rest_framework.generics import get_object_or_404
 from django.shortcuts import get_list_or_404
 from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.pagination import (
+    LimitOffsetPagination, PageNumberPagination)
 from rest_framework import filters
 
 from backend.models import (Categorie,
@@ -87,20 +88,21 @@ class CategorieViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
                        mixins.DestroyModelMixin, viewsets.GenericViewSet):
     queryset = Categorie.objects.all()
     serializer_class = CategorieSerializer
-    pagination_class = LimitOffsetPagination
+    lookup_field = 'slug'
+    pagination_class = PageNumberPagination
     filter_backends = (filters.SearchFilter, )
     search_fields = ('name',)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def perform_create(self, serializer):
-        if self.request.user.role == 'ADMIN' or self.request.user.is_superuser:
+        if self.request.user.role == 'admin' or self.request.user.is_superuser:
             serializer.save()
         else:
             raise PermissionDenied(
                 'Только администратор имеет право добавлять новые категории')
 
     def perform_destroy(self, instance):
-        if self.request.user.role == 'ADMIN' or self.request.user.is_superuser:
+        if self.request.user.role == 'admin' or self.request.user.is_superuser:
             super(CategorieViewSet, self).perform_destroy(instance)
         else:
             raise PermissionDenied(
@@ -111,19 +113,21 @@ class GenreViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
                    mixins.DestroyModelMixin, viewsets.GenericViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    pagination_class = LimitOffsetPagination
+    lookup_field = 'slug'
+    pagination_class = PageNumberPagination
+    filter_backends = (filters.SearchFilter, )
     search_fields = ('name',)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def perform_create(self, serializer):
-        if self.request.user.role == 'ADMIN' or self.request.user.is_superuser:
+        if self.request.user.role == 'admin' or self.request.user.is_superuser:
             serializer.save()
         else:
             raise PermissionDenied(
                 'Только администратор имеет право добавлять новые жанры')
 
     def perform_destroy(self, instance):
-        if self.request.user.role == 'ADMIN' or self.request.user.is_superuser:
+        if self.request.user.role == 'admin' or self.request.user.is_superuser:
             super().perform_destroy(instance)
         else:
             raise PermissionDenied(
@@ -133,7 +137,7 @@ class GenreViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     # serializer_class = TitleSerializer
-    pagination_class = LimitOffsetPagination
+    pagination_class = PageNumberPagination
     filter_backends = (filters.SearchFilter, DjangoFilterBackend,)
     filterset_fields = ('categorie', 'genre__slug', 'name', 'year')
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
@@ -144,7 +148,7 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitleWriteSerializer
 
     def perform_create(self, serializer):
-        if 'categorie' not in serializer.initial_data:
+        if 'category' not in serializer.initial_data:
             text_error = ('Назвние категории произведения'
                           ' обязательно должно присутсвовать')
             raise PermissionDenied(text_error)
@@ -152,9 +156,9 @@ class TitleViewSet(viewsets.ModelViewSet):
             text_error = ('Назвние жанра произведения'
                           ' обязательно должно присутсвовать')
             raise PermissionDenied(text_error)
-        categorie = serializer.initial_data['categorie']
+        categorie = serializer.initial_data['category']
         genre = serializer.initial_data['genre']
-        if self.request.user.role == 'ADMIN' or self.request.user.is_superuser:
+        if self.request.user.role == 'admin' or self.request.user.is_superuser:
             get_object_or_404(Categorie, slug=categorie)
             get_list_or_404(Genre, slug__in=genre)
             serializer.save()
@@ -169,14 +173,14 @@ class TitleViewSet(viewsets.ModelViewSet):
         if 'genre' in serializer.initial_data:
             genre = serializer.initial_data['genre']
             get_list_or_404(Genre, slug__in=genre)
-        if self.request.user.role == 'ADMIN' or self.request.user.is_superuser:
+        if self.request.user.role == 'admin' or self.request.user.is_superuser:
             serializer.save()
         else:
             raise PermissionDenied('Только администратор имеет'
                                    ' право обновлять данные о произведении')
 
     def perform_destroy(self, instance):
-        if self.request.user.role == 'ADMIN' or self.request.user.is_superuser:
+        if self.request.user.role == 'admin' or self.request.user.is_superuser:
             super().perform_destroy(instance)
         else:
             raise PermissionDenied(
