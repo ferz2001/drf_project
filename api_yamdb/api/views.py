@@ -1,4 +1,3 @@
-# from rest_framework.decorators import api_view
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status, viewsets, permissions, mixins
 from rest_framework.response import Response
@@ -9,7 +8,8 @@ from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework import filters
-
+from rest_framework.permissions import (AllowAny, IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from backend.models import (Categorie,
                             Genre,
                             Title,
@@ -24,11 +24,11 @@ from .serializers import (UserSerializer,
                           CommentSerializer)
 
 from .utilities import get_confirmation_code, send_confirmation_code_email
-from .permissions import AuthADMMODOrReadOnly
-
-from .permissions import IsAdmin
+from .permissions import (IsAdmin, IsAdminOrReadOnly, IsAuthor, IsModerator,
+                          IsSuperuser)
 
 class RegisterView(APIView):
+    permission_classes = (AllowAny,)
     def post(self, request):
         email = request.data.get('email')
         username = request.data.get('username')
@@ -46,6 +46,7 @@ class RegisterView(APIView):
 
 
 class TokenView(APIView):
+    permission_classes = (AllowAny,)
     def get_token(self, user):
         refresh = RefreshToken.for_user(user)
         return str(refresh.access_token)
@@ -65,7 +66,7 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     filter_backends = (filters.SearchFilter, )
     search_field = 'username'
-    permission_classes = (IsAdmin,)
+    permission_classes = (IsAuthenticated, IsSuperuser | IsAdmin,)
 
     @action(detail=False, permission_classes=(permissions.IsAuthenticated,),
             methods=['GET', 'PATCH'], url_path='me')
@@ -89,7 +90,7 @@ class CategorieViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
     pagination_class = LimitOffsetPagination
     filter_backends = (filters.SearchFilter, )
     search_fields = ('name',)
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = [IsAdminOrReadOnly]
 
     def perform_create(self, serializer):
         if self.request.user.role == 'ADMIN':
@@ -112,7 +113,7 @@ class GenreViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
     serializer_class = GenreSerializer
     pagination_class = LimitOffsetPagination
     search_fields = ('name',)
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = [IsAdminOrReadOnly]
 
     def perform_create(self, serializer):
         if self.request.user.role == 'ADMIN':
@@ -135,7 +136,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     pagination_class = LimitOffsetPagination
     filter_backends = (filters.SearchFilter, DjangoFilterBackend,)
     filterset_fields = ('categorie', 'genre__slug', 'name', 'year')
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAdminOrReadOnly]
 
     def perform_create(self, serializer):
         if 'categorie' not in serializer.initial_data:
@@ -180,7 +181,8 @@ class TitleViewSet(viewsets.ModelViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    permission_classes = (AuthADMMODOrReadOnly,)
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthor | IsModerator |
+                          IsAdminOrReadOnly | IsSuperuser]
 
     def perform_update(self, serializer):
         if serializer.instance.author != self.request.user:
@@ -207,7 +209,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthor | IsModerator |
+                          IsAdminOrReadOnly | IsSuperuser]
 
     def perform_update(self, serializer):
         if serializer.instance.author != self.request.user:
@@ -232,6 +235,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user,
                         title=title,
                         review=review)
+        
 
     def get_permissions(self):
         if self.action == 'update':
