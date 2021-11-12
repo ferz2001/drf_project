@@ -235,9 +235,3 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user,
                         title=title,
                         review=review)
-        
-
-    def get_permissions(self):
-        if self.action == 'update':
-            return (AuthADMMODOrReadOnly(),)
-        return super().get_permissions()
