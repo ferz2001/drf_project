@@ -1,5 +1,7 @@
 from rest_framework import permissions, serializers  # , validators
 # from rest_framework.relations import SlugRelatedField
+import datetime as dt
+from django.db.models import Avg
 
 from backend.models import (Categorie,
                             Genre,
@@ -33,10 +35,19 @@ class GenreSerializer(serializers.ModelSerializer):
 class TitleSerializer(serializers.ModelSerializer):
     categorie = CategorieSerializer()
     genre = GenreSerializer(many=True)
+    rating = serializers.SerializerMethodField()
 
     class Meta:
-        fields = ('id', 'name', 'year', 'description', 'genre', 'categorie')
+        fields = (
+            'id', 'name', 'year', 'description', 'rating', 'genre', 'categorie'
+        )
         model = Title
+
+    def get_rating(self, obj):
+        if obj.reviews.count() == 0:
+            return 'None'
+        else:
+            return obj.reviews.aggregate(Avg('score'))['score__avg']
 
 
 class TitleWriteSerializer(serializers.ModelSerializer):
@@ -49,10 +60,25 @@ class TitleWriteSerializer(serializers.ModelSerializer):
         queryset=Genre.objects.all(),
         slug_field='slug'
     )
+    rating = serializers.SerializerMethodField()
 
     class Meta:
-        fields = ('id', 'name', 'year', 'description', 'genre', 'categorie')
+        fields = (
+            'id', 'name', 'year', 'description', 'rating', 'genre', 'categorie')
         model = Title
+
+    def get_rating(self, obj):
+        if obj.reviews.count() == 0:
+            return 'None'
+        else:
+            return obj.reviews.aggregate(Avg('score'))['score__avg']
+
+    def validate_year(self, value):
+        now_year = dt.date.today().year
+        if value > now_year:
+            raise serializers.ValidationError(
+                'Год выпуска не может быть больше текущего')
+        return value
 
 
 class ReviewSerializer(serializers.ModelSerializer):
