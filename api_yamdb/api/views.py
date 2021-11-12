@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import get_object_or_404
+from django.shortcuts import get_list_or_404
 from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import LimitOffsetPagination
@@ -19,7 +20,7 @@ from backend.models import (Categorie,
 from .serializers import (UserSerializer,
                           CategorieSerializer,
                           GenreSerializer,
-                          TitleSerializer,
+                          TitleSerializer, TitleWriteSerializer,
                           ReviewSerializer,
                           CommentSerializer)
 
@@ -27,6 +28,7 @@ from .utilities import get_confirmation_code, send_confirmation_code_email
 from .permissions import AuthADMMODOrReadOnly
 
 from .permissions import IsAdmin
+
 
 class RegisterView(APIView):
     def post(self, request):
@@ -71,15 +73,14 @@ class UserViewSet(viewsets.ModelViewSet):
             methods=['GET', 'PATCH'], url_path='me')
     def get_or_patch_yourself(self, request):
         if request.method == 'GET':
-            serializer=self.get_serializer(request.user, many=False)
+            serializer = self.get_serializer(request.user, many=False)
             return Response(serializer.data)
         elif request.method == 'PATCH':
-            serializer = self.get_serializer(instance=request.user,
-                                    data=request.data, partial=True)
+            serializer = self.get_serializer(
+                instance=request.user, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data)
-
 
 
 class CategorieViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
@@ -92,14 +93,14 @@ class CategorieViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def perform_create(self, serializer):
-        if self.request.user.role == 'ADMIN':
+        if self.request.user.role == 'ADMIN' or self.request.user.is_superuser:
             serializer.save()
         else:
             raise PermissionDenied(
                 'Только администратор имеет право добавлять новые категории')
 
     def perform_destroy(self, instance):
-        if self.request.user.role == 'ADMIN':
+        if self.request.user.role == 'ADMIN' or self.request.user.is_superuser:
             super(CategorieViewSet, self).perform_destroy(instance)
         else:
             raise PermissionDenied(
@@ -115,14 +116,14 @@ class GenreViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def perform_create(self, serializer):
-        if self.request.user.role == 'ADMIN':
+        if self.request.user.role == 'ADMIN' or self.request.user.is_superuser:
             serializer.save()
         else:
             raise PermissionDenied(
                 'Только администратор имеет право добавлять новые жанры')
 
     def perform_destroy(self, instance):
-        if self.request.user.role == 'ADMIN':
+        if self.request.user.role == 'ADMIN' or self.request.user.is_superuser:
             super().perform_destroy(instance)
         else:
             raise PermissionDenied(
@@ -131,11 +132,16 @@ class GenreViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
-    serializer_class = TitleSerializer
+    # serializer_class = TitleSerializer
     pagination_class = LimitOffsetPagination
     filter_backends = (filters.SearchFilter, DjangoFilterBackend,)
     filterset_fields = ('categorie', 'genre__slug', 'name', 'year')
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    def get_serializer_class(self):
+        if self.action == 'list' or self.action == 'retrieve':
+            return TitleSerializer
+        return TitleWriteSerializer
 
     def perform_create(self, serializer):
         if 'categorie' not in serializer.initial_data:
@@ -148,9 +154,9 @@ class TitleViewSet(viewsets.ModelViewSet):
             raise PermissionDenied(text_error)
         categorie = serializer.initial_data['categorie']
         genre = serializer.initial_data['genre']
-        if self.request.user.role == 'ADMIN':
-            get_object_or_404(Categorie, id=categorie)
-            get_object_or_404(Genre, id=genre)
+        if self.request.user.role == 'ADMIN' or self.request.user.is_superuser:
+            get_object_or_404(Categorie, slug=categorie)
+            get_list_or_404(Genre, slug__in=genre)
             serializer.save()
         else:
             raise PermissionDenied('Только администратор имеет'
@@ -159,18 +165,18 @@ class TitleViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         if 'categorie' in serializer.initial_data:
             categorie = serializer.initial_data['categorie']
-            get_object_or_404(Categorie, id=categorie)
+            get_object_or_404(Categorie, slug=categorie)
         if 'genre' in serializer.initial_data:
             genre = serializer.initial_data['genre']
-            get_object_or_404(Genre, id=genre)
-        if self.request.user.role == 'ADMIN':
+            get_list_or_404(Genre, slug__in=genre)
+        if self.request.user.role == 'ADMIN' or self.request.user.is_superuser:
             serializer.save()
         else:
             raise PermissionDenied('Только администратор имеет'
                                    ' право обновлять данные о произведении')
 
     def perform_destroy(self, instance):
-        if self.request.user.role == 'ADMIN':
+        if self.request.user.role == 'ADMIN' or self.request.user.is_superuser:
             super().perform_destroy(instance)
         else:
             raise PermissionDenied(

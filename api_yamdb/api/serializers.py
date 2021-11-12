@@ -19,22 +19,39 @@ class UserSerializer(serializers.ModelSerializer):
 class CategorieSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = ('__all__')
+        fields = ('name', 'slug')
         model = Categorie
 
 
 class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = ('__all__')
+        fields = ('name', 'slug')
         model = Genre
 
 
 class TitleSerializer(serializers.ModelSerializer):
+    categorie = CategorieSerializer()
+    genre = GenreSerializer(many=True)
 
     class Meta:
-        # fields = ('id', 'name', 'year', 'description', 'genre', 'categorie')
-        fields = ('__all__')
+        fields = ('id', 'name', 'year', 'description', 'genre', 'categorie')
+        model = Title
+
+
+class TitleWriteSerializer(serializers.ModelSerializer):
+    categorie = serializers.SlugRelatedField(
+        queryset=Categorie.objects.all(),
+        slug_field='slug'
+    )
+    genre = serializers.SlugRelatedField(
+        many=True,
+        queryset=Genre.objects.all(),
+        slug_field='slug'
+    )
+
+    class Meta:
+        fields = ('id', 'name', 'year', 'description', 'genre', 'categorie')
         model = Title
 
 
