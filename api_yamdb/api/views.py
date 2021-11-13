@@ -1,8 +1,8 @@
+from rest_framework.exceptions import ParseError
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import request, status, viewsets, permissions, mixins
+from rest_framework import status, viewsets, permissions, mixins
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import get_object_or_404
 from rest_framework.views import APIView
 # from django_filters import rest_framework as rest_framework_filters
@@ -155,8 +155,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         title_id = self.kwargs['title_id']
         title = get_object_or_404(Title, id=title_id)
         if self.request.user.reviews.filter(title=title).exists():
-            response = {'Ошибка': 'Пользователь может оставить только один отзыв на произведение.'}
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+            raise ParseError('Нельзя добавить еще один отзыв :)')
         serializer.save(author=self.request.user,
                         title=title)
 
