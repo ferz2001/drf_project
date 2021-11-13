@@ -47,7 +47,10 @@ class RegisterView(APIView):
         serializer = UserSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        send_confirmation_code_email(email, confirmation_code)
+        try:
+            send_confirmation_code_email(email, confirmation_code)
+        except Exception:
+            print('email не ушел :)')
         data.pop('confirmation_code')
         return Response(data, status=status.HTTP_200_OK)
 
