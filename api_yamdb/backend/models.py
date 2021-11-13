@@ -1,5 +1,6 @@
 from api.utilities import get_confirmation_code
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 ROLE_CHOICES = [('user', 'user'),
@@ -24,6 +25,14 @@ class User(AbstractUser):
         choices=ROLE_CHOICES,
         default='USER',
     )
+
+    @property
+    def is_admin(self):
+        return self.is_staff or self.role == ROLE_CHOICES[2][1]
+
+    @property
+    def is_moderator(self):
+        return self.role == ROLE_CHOICES[1][1]
 
 
 class Categorie(models.Model):
@@ -68,8 +77,16 @@ class Review(models.Model):
         User, on_delete=models.CASCADE, related_name='reviews')
     pub_date = models.DateTimeField(
         'Дата добавления', auto_now_add=True, db_index=True)
-    score = models.PositiveIntegerField(
-        'Оценка',)
+    score = models.PositiveSmallIntegerField(
+        verbose_name='Оценка',
+        default=1,
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(10)
+        ],
+        blank=False,
+        null=False
+    )
     text = models.CharField(max_length=256,)
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE, related_name='reviews')

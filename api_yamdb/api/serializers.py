@@ -1,5 +1,4 @@
-from rest_framework import permissions, serializers  # , validators
-# from rest_framework.relations import SlugRelatedField
+from rest_framework import serializers
 import datetime as dt
 from django.db.models import Avg
 
@@ -45,7 +44,7 @@ class TitleSerializer(serializers.ModelSerializer):
 
     def get_rating(self, obj):
         if obj.reviews.count() == 0:
-            return 'None'
+            return None
         else:
             return obj.reviews.aggregate(Avg('score'))['score__avg']
 
