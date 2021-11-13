@@ -37,7 +37,7 @@ class RegisterView(APIView):
         username = request.data.get('username')
         if username == 'me':
             response = {'username': 'не может быть "me"'}
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)            
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
         confirmation_code = get_confirmation_code()
         data = {
             'email': email,
@@ -78,8 +78,9 @@ class TokenView(APIView):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    lookup_field = 'username'
     filter_backends = (filters.SearchFilter, )
-    search_field = 'username'
+    search_fields = ('username',)
     permission_classes = (IsAuthenticated, IsSuperuser | IsAdmin,)
 
     @action(detail=False, permission_classes=(permissions.IsAuthenticated,),
@@ -93,7 +94,7 @@ class UserViewSet(viewsets.ModelViewSet):
                 instance=request.user,
                 data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
-            serializer.save()
+            serializer.save(role=request.user.role)
             return Response(serializer.data)
 
 
@@ -142,8 +143,9 @@ class TitleViewSet(viewsets.ModelViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthor | IsModerator |
-                          IsAdminOrReadOnly | IsSuperuser]
+    permission_classes = [
+        IsAuthenticatedOrReadOnly,
+        IsAuthor | IsModerator | IsAdminOrReadOnly | IsSuperuser, ]
 
     def perform_update(self, serializer):
         if serializer.instance.author != self.request.user:
@@ -158,7 +160,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         title_id = self.kwargs['title_id']
         title = get_object_or_404(Title, id=title_id)
-        return title.reviews
+        return title.reviews.all()
 
     def perform_create(self, serializer):
         title_id = self.kwargs['title_id']
@@ -170,8 +172,9 @@ class ReviewViewSet(viewsets.ModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthor | IsModerator |
-                          IsAdminOrReadOnly | IsSuperuser]
+    permission_classes = [
+        IsAuthenticatedOrReadOnly,
+        IsAuthor | IsModerator | IsAdminOrReadOnly | IsSuperuser]
 
     def perform_update(self, serializer):
         if serializer.instance.author != self.request.user:
@@ -186,7 +189,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         review_id = self.kwargs['review_id']
         review = get_object_or_404(Review, id=review_id)
-        return review.comments
+        return review.comments.all()
 
     def perform_create(self, serializer):
         title_id = self.kwargs['title_id']

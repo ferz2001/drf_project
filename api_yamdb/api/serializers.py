@@ -13,7 +13,9 @@ from backend.models import (Categorie,
 class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = ('__all__')
+        # fields = ('__all__')
+        fields = (
+            'bio', 'email', 'first_name', 'last_name', 'role', 'username')
         model = User
 
 
