@@ -3,9 +3,9 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-ROLE_CHOICES = [('USER', 'user'),
-                ('MODERATOR', 'moderator'),
-                ('ADMIN', 'admin')]
+ROLE_CHOICES = [('user', 'user'),
+                ('moderator', 'moderator'),
+                ('admin', 'admin')]
 
 
 class User(AbstractUser):
@@ -18,7 +18,8 @@ class User(AbstractUser):
     bio = models.TextField(blank=True)
     first_name = models.CharField(max_length=150, blank=True)
     last_name = models.CharField(max_length=150, blank=True)
-    confirmation_code = models.CharField(max_length=20, default=get_confirmation_code())
+    confirmation_code = models.CharField(
+        max_length=20, default=get_confirmation_code())
     role = models.CharField(
         max_length=20,
         choices=ROLE_CHOICES,
@@ -54,11 +55,11 @@ class Title(models.Model):
     name = models.CharField(max_length=70,)
     year = models.PositiveIntegerField()
     description = models.TextField(blank=True,)
-    genre = models.ForeignKey(
+    genre = models.ManyToManyField(
         'Genre',
-        on_delete=models.SET_NULL,
+        # on_delete=models.SET_NULL,
         related_name='titles',
-        null=True,
+        # null=True,
     )
     categorie = models.ForeignKey(
         'Categorie',
