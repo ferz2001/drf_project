@@ -11,7 +11,7 @@ from django_filters.rest_framework.filters import CharFilter
 from rest_framework import filters
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
-from backend.models import (Categorie,
+from reviews.models import (Categorie,
                             Genre,
                             Title,
                             Review,

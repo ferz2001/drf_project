@@ -2,12 +2,13 @@ from rest_framework import serializers
 import datetime as dt
 from django.db.models import Avg
 
-from backend.models import (Categorie,
+from reviews.models import (Categorie,
                             Genre,
                             Title,
                             Review,
                             Comment,
                             User)
+
 
 
 class UserSerializer(serializers.ModelSerializer):

@@ -92,6 +92,14 @@ class Review(models.Model):
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE, related_name='reviews')
 
+    class Meta:
+        db_table = 'reviews'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['title', 'author'], name='unique_author_for_title'
+            )
+        ]
+
     def __str__(self):
         return self.text
 

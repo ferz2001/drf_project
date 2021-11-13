@@ -24,7 +24,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'api',
-    'backend',
+    'reviews',
     'django_filters'
 ]
 
@@ -107,7 +107,7 @@ STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static/'),)
 
-AUTH_USER_MODEL = 'backend.User'
+AUTH_USER_MODEL = 'reviews.User'
 
 DEFAULT_FROM_EMAIL = 'k.milobendzky@yandex.ru'
 
