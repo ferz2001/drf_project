@@ -35,6 +35,9 @@ class RegisterView(APIView):
     def post(self, request):
         email = request.data.get('email')
         username = request.data.get('username')
+        if username == 'me':
+            response = {'username': 'не может быть "me"'}
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)            
         confirmation_code = get_confirmation_code()
         data = {
             'email': email,
@@ -45,7 +48,8 @@ class RegisterView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         send_confirmation_code_email(email, confirmation_code)
-        return Response(serializer, status=status.HTTP_200_OK)
+        data.pop('confirmation_code')
+        return Response(data, status=status.HTTP_200_OK)
 
 
 class TokenView(APIView):
@@ -56,8 +60,11 @@ class TokenView(APIView):
         return str(refresh.access_token)
 
     def post(self, request):
-        email = request.data.get('email')
-        user = get_object_or_404(User, email=email)
+        username = request.data.get('username')
+        if username is None:
+            response = {'username': 'Вы забыли указать username'}
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        user = get_object_or_404(User, username=username)
         if user.confirmation_code != request.data.get('confirmation_code'):
             response = {'confirmation_code': 'Invalid confirmation code'}
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
@@ -132,9 +139,8 @@ class TitleViewSet(viewsets.ModelViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    permission_classes = [
-        IsAuthenticatedOrReadOnly,
-        IsAuthor | IsModerator | IsAdminOrReadOnly | IsSuperuser]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthor | IsModerator |
+                          IsAdminOrReadOnly | IsSuperuser]
 
     def perform_update(self, serializer):
         if serializer.instance.author != self.request.user:
@@ -161,9 +167,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = [
-        IsAuthenticatedOrReadOnly,
-        IsAuthor | IsModerator | IsAdminOrReadOnly | IsSuperuser]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthor | IsModerator |
+                          IsAdminOrReadOnly | IsSuperuser]
 
     def perform_update(self, serializer):
         if serializer.instance.author != self.request.user:
