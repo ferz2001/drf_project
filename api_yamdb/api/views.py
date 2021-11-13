@@ -35,6 +35,9 @@ class RegisterView(APIView):
     def post(self, request):
         email = request.data.get('email')
         username = request.data.get('username')
+        if username == 'me':
+            response = {'username': 'не может быть "me"'}
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
         confirmation_code = get_confirmation_code()
         data = {
             'email': email,
@@ -44,8 +47,12 @@ class RegisterView(APIView):
         serializer = UserSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        send_confirmation_code_email(email, confirmation_code)
-        return Response(serializer, status=status.HTTP_200_OK)
+        try:
+            send_confirmation_code_email(email, confirmation_code)
+        except Exception:
+            print('email не ушел :)')
+        data.pop('confirmation_code')
+        return Response(data, status=status.HTTP_200_OK)
 
 
 class TokenView(APIView):
@@ -56,8 +63,11 @@ class TokenView(APIView):
         return str(refresh.access_token)
 
     def post(self, request):
-        email = request.data.get('email')
-        user = get_object_or_404(User, email=email)
+        username = request.data.get('username')
+        if username is None:
+            response = {'username': 'Вы забыли указать username'}
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        user = get_object_or_404(User, username=username)
         if user.confirmation_code != request.data.get('confirmation_code'):
             response = {'confirmation_code': 'Invalid confirmation code'}
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
@@ -68,8 +78,9 @@ class TokenView(APIView):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    lookup_field = 'username'
     filter_backends = (filters.SearchFilter, )
-    search_field = 'username'
+    search_fields = ('username',)
     permission_classes = (IsAuthenticated, IsSuperuser | IsAdmin,)
 
     @action(detail=False, permission_classes=(permissions.IsAuthenticated,),
@@ -83,7 +94,7 @@ class UserViewSet(viewsets.ModelViewSet):
                 instance=request.user,
                 data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
-            serializer.save()
+            serializer.save(role=request.user.role)
             return Response(serializer.data)
 
 
