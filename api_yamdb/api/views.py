@@ -1,5 +1,5 @@
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import status, viewsets, permissions, mixins
+from rest_framework import request, status, viewsets, permissions, mixins
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
@@ -135,24 +135,17 @@ class ReviewViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuthor | IsModerator |
                           IsAdminOrReadOnly | IsSuperuser]
 
-    def perform_update(self, serializer):
-        if serializer.instance.author != self.request.user:
-            raise PermissionDenied('Изменение чужого контента запрещено!')
-        super(CommentViewSet, self).perform_update(serializer)
-
-    def perform_destroy(self, instance):
-        if instance.author != self.request.user:
-            raise PermissionDenied('Изменение чужого контента запрещено!')
-        super(CommentViewSet, self).perform_destroy(instance)
-
     def get_queryset(self):
         title_id = self.kwargs['title_id']
-        title = get_object_or_404(Title, id=title_id)
-        return title.reviews
+        reviews = Review.objects.filter(title=title_id)
+        return reviews
 
     def perform_create(self, serializer):
         title_id = self.kwargs['title_id']
         title = get_object_or_404(Title, id=title_id)
+        if self.request.user.reviews.filter(title=title).exists():
+            response = {'Ошибка': 'Пользователь может оставить только один отзыв на произведение.'}
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
         serializer.save(author=self.request.user,
                         title=title)
 
@@ -163,20 +156,10 @@ class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuthor | IsModerator |
                           IsAdminOrReadOnly | IsSuperuser]
 
-    def perform_update(self, serializer):
-        if serializer.instance.author != self.request.user:
-            raise PermissionDenied('Изменение чужого контента запрещено!')
-        super(CommentViewSet, self).perform_update(serializer)
-
-    def perform_destroy(self, instance):
-        if instance.author != self.request.user:
-            raise PermissionDenied('Изменение чужого контента запрещено!')
-        super(CommentViewSet, self).perform_destroy(instance)
-
     def get_queryset(self):
         review_id = self.kwargs['review_id']
-        review = get_object_or_404(Review, id=review_id)
-        return review.comments
+        comments = Comment.objects.filter(review=review_id)
+        return comments
 
     def perform_create(self, serializer):
         title_id = self.kwargs['title_id']

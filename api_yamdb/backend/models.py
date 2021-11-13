@@ -34,6 +34,9 @@ class User(AbstractUser):
     def is_moderator(self):
         return self.role == ROLE_CHOICES[1][1]
 
+    def __str__(self):
+        return self.username
+
 
 class Categorie(models.Model):
     name = models.CharField(max_length=256,)
@@ -55,17 +58,17 @@ class Title(models.Model):
     name = models.CharField(max_length=70,)
     year = models.PositiveIntegerField()
     description = models.TextField(blank=True,)
-    genre = models.ManyToManyField(
+    genre = models.ForeignKey(
         'Genre',
-        # on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         related_name='titles',
-        # null=True,
+        null=True
     )
     categorie = models.ForeignKey(
         'Categorie',
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         related_name='titles',
-        null=True,
+        null=True
     )
 
     def __str__(self):
@@ -101,7 +104,7 @@ class Comment(models.Model):
     review = models.ForeignKey(
         Review, on_delete=models.CASCADE, related_name='comments')
     text = models.TextField()
-    created = models.DateTimeField(
+    pub_date = models.DateTimeField(
         'Дата добавления', auto_now_add=True, db_index=True)
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE, related_name='comments')
