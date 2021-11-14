@@ -98,9 +98,8 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
 
 
-class CategorieViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
-                       mixins.DestroyModelMixin, viewsets.GenericViewSet):
-    queryset = Categorie.objects.get_queryset().order_by('id')
+class CategorieViewSet(viewsets.ModelViewSet):
+    queryset = Categorie.objects.get_queryset().order_by('slug')
     serializer_class = CategorieSerializer
     lookup_field = 'slug'
     filter_backends = (filters.SearchFilter, )
