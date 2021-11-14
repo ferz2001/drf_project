@@ -10,7 +10,6 @@ from reviews.models import (Categorie,
                             User)
 
 
-
 class UserSerializer(serializers.ModelSerializer):
 
     class Meta:

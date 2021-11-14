@@ -76,7 +76,7 @@ class TokenView(APIView):
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
+    queryset = User.objects.get_queryset().order_by('id')
     serializer_class = UserSerializer
     lookup_field = 'username'
     filter_backends = (filters.SearchFilter, )
@@ -100,7 +100,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
 class CategorieViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
                        mixins.DestroyModelMixin, viewsets.GenericViewSet):
-    queryset = Categorie.objects.all()
+    queryset = Categorie.objects.get_queryset().order_by('id')
     serializer_class = CategorieSerializer
     lookup_field = 'slug'
     filter_backends = (filters.SearchFilter, )
@@ -110,7 +110,7 @@ class CategorieViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
 
 class GenreViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
                    mixins.DestroyModelMixin, viewsets.GenericViewSet):
-    queryset = Genre.objects.all()
+    queryset = Genre.objects.get_queryset().order_by('id')
     serializer_class = GenreSerializer
     lookup_field = 'slug'
     filter_backends = (filters.SearchFilter, )
@@ -129,7 +129,7 @@ class TitleFilter(FilterSet):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
+    queryset = Title.objects.get_queryset().order_by('id')
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
     permission_classes = (IsAdminOrReadOnly | IsSuperuser,)
@@ -141,14 +141,14 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
-    queryset = Review.objects.all()
+    queryset = Review.objects.get_queryset().order_by('id')
     serializer_class = ReviewSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthor | IsModerator |
-                          IsAdminOrReadOnly | IsSuperuser]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthor | IsModerator
+                          | IsAdminOrReadOnly | IsSuperuser]
 
     def get_queryset(self):
         title_id = self.kwargs['title_id']
-        reviews = Review.objects.filter(title=title_id)
+        reviews = Review.objects.filter(title=title_id).order_by('id')
         return reviews
 
     def perform_create(self, serializer):
@@ -161,14 +161,14 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    queryset = Comment.objects.all()
+    queryset = Comment.objects.get_queryset().order_by('id')
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthor | IsModerator |
-                          IsAdminOrReadOnly | IsSuperuser]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthor | IsModerator
+                          | IsAdminOrReadOnly | IsSuperuser]
 
     def get_queryset(self):
         review_id = self.kwargs['review_id']
-        comments = Comment.objects.filter(review=review_id)
+        comments = Comment.objects.filter(review=review_id).order_by('id')
         return comments
 
     def perform_create(self, serializer):
